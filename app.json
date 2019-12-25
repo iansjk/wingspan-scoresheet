@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "testing",
-    "slug": "test",
+    "name": "Wingspan Scoresheet",
+    "slug": "wingspan-scoresheet",
     "privacy": "public",
     "sdkVersion": "36.0.0",
     "platforms": [
