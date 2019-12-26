@@ -55,28 +55,90 @@ class WSTextInput extends React.Component<TextInputProps> {
 }
 
 export class ScoreLabelColumn extends React.Component {
+  state = {
+    amountOnCardsStyle: {
+      width: 0,
+      height: 0,
+      left: 0,
+      top: 0
+    },
+    onePointEachStyle: {
+      width: 0,
+      height: 0,
+      left: 0,
+      top: 0
+    }
+  }
+
+  handleLayout(event, propName) {
+    const viewLayout = event.nativeEvent.layout;
+    const labelStyle = {
+      width: viewLayout.height,
+      height: viewLayout.width,
+      left: -viewLayout.height / 2 + viewLayout.width / 2,
+      top: viewLayout.height / 2 - viewLayout.width / 2
+    }
+    this.setState({
+      [propName + 'Style']: labelStyle
+    });
+  }
+
   render() {
     return (
       <View style={{ flex: 3 }}>
         <LabelCell />
-        <LabelCell>
-          <WSText>Birds</WSText>
-        </LabelCell>
-        <LabelCell>
-          <WSText>Bonus cards</WSText>
-        </LabelCell>
-        <LabelCell>
-          <WSText>End-of-round goals</WSText>
-        </LabelCell>
-        <LabelCell>
-          <WSText>Eggs</WSText>
-        </LabelCell>
-        <LabelCell>
-          <WSText>Food on cards</WSText>
-        </LabelCell>
-        <LabelCell>
-          <WSText>Tucked cards</WSText>
-        </LabelCell>
+        <View style={{ flex: 3, flexDirection: 'row' }}>
+          <View
+            style={{ flex: 1, backgroundColor: 'lightgray' }}
+            onLayout={(e) => this.handleLayout(e, 'amountOnCards')}
+          >
+            <WSText
+              style={[this.state.amountOnCardsStyle, {
+                position: 'absolute',
+                textAlign: 'center',
+                textTransform: 'uppercase',
+                transform: [{ rotate: '270deg' }]
+              }] as StyleProp<TextStyle>}
+            >Amount on cards</WSText>
+          </View>
+          <View style={{ flex: 5 }}>
+            <LabelCell>
+              <WSText>Birds</WSText>
+            </LabelCell>
+            <LabelCell>
+              <WSText>Bonus cards</WSText>
+            </LabelCell>
+            <LabelCell>
+              <WSText>End-of-round goals</WSText>
+            </LabelCell>
+          </View>
+        </View>
+        <View style={{ flex: 3, flexDirection: 'row' }}>
+          <View
+            style={{ flex: 1, backgroundColor: 'lightgray' }}
+            onLayout={(e) => this.handleLayout(e, 'onePointEach')}
+          >
+            <WSText
+              style={[this.state.onePointEachStyle, {
+                position: 'absolute',
+                textAlign: 'center',
+                textTransform: 'uppercase',
+                transform: [{ rotate: '270deg' }]
+              }] as StyleProp<TextStyle>}
+            >1 Point Each</WSText>
+          </View>
+          <View style={{ flex: 5 }}>
+            <LabelCell>
+              <WSText>Eggs</WSText>
+            </LabelCell>
+            <LabelCell>
+              <WSText>Food on cards</WSText>
+            </LabelCell>
+            <LabelCell>
+              <WSText>Tucked cards</WSText>
+            </LabelCell>
+          </View>
+        </View>
         <LabelCell style={{
           borderBottomWidth: 0,
           alignItems: 'center'
@@ -132,24 +194,29 @@ class PlayerScoreCard extends React.Component<PlayerScoreCardProps, PlayerScoreC
     }
   }
 
+  renderScoreCell(i: number) {
+    return (
+      <TableCell key={i}>
+        <ScoreCell
+          onChangeText={(text) => this.handleChangeText(text, i)}
+          value={this.state.subscores[i].toString()}
+        />
+      </TableCell>
+    );
+  }
+
   render() {
     return (
       <View style={{ flex: 2 }}>
         <TableCell>
           <WSTextInput defaultValue={"Player " + this.props.number} />
         </TableCell>
-        {
-          this.state.subscores.map((_, i) => {
-            return (
-              <TableCell key={i}>
-                <ScoreCell
-                  onChangeText={(text) => this.handleChangeText(text, i)}
-                  value={this.state.subscores[i].toString()}
-                />
-              </TableCell>
-            );
-          })
-        }
+        <View style={{ flex: 3 }}>
+          {this.state.subscores.slice(0, 3).map((_, i) => this.renderScoreCell(i))}
+        </View>
+        <View style={{ flex: 3 }}>
+          {this.state.subscores.slice(3).map((_, i) => this.renderScoreCell(i))}
+        </View>
         <TableCell style={{
           borderBottomWidth: 0
         }}>
