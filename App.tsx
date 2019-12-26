@@ -57,7 +57,7 @@ class WSTextInput extends React.Component<TextInputProps> {
 export class ScoreLabelColumn extends React.Component {
   render() {
     return (
-      <View style={{ flex: 1 }}>
+      <View style={{ flex: 3 }}>
         <LabelCell />
         <LabelCell>
           <WSText>Birds</WSText>
@@ -95,7 +95,6 @@ class ScoreCell extends React.Component<TextInputProps> {
   render() {
     return (
       <WSTextInput
-        onFocus={(e) => console.log(e)}
         keyboardType="numeric"
         {...this.props}
       />
@@ -135,7 +134,7 @@ class PlayerScoreCard extends React.Component<PlayerScoreCardProps, PlayerScoreC
 
   render() {
     return (
-      <View style={{flex: 1}}>
+      <View style={{ flex: 2 }}>
         <TableCell>
           <WSTextInput defaultValue={"Player " + this.props.number} />
         </TableCell>
