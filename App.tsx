@@ -21,6 +21,8 @@ const styles = StyleSheet.create({
     fontFamily: 'cardenio-modern'
   },
   defaultTextInput: {
+    flex: 1,
+    alignSelf: 'stretch',
     textAlign: 'center'
   },
   verticalLabel: {
