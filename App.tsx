@@ -231,7 +231,7 @@ class PlayerScoreCard extends React.Component<PlayerScoreCardProps, PlayerScoreC
           {this.state.subscores.slice(0, 3).map((_, i) => this.renderScoreCell(i))}
         </View>
         <View style={{ flex: 3 }}>
-          {this.state.subscores.slice(3).map((_, i) => this.renderScoreCell(i))}
+          {this.state.subscores.slice(3).map((_, i) => this.renderScoreCell(i + 3))}
         </View>
         <TableCell style={{
           borderBottomWidth: 0,
