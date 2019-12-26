@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View, TextInput, TextInputProps, StyleProp, TextStyle, ViewProps, ViewStyle, TextProps, KeyboardAvoidingView, StatusBar } from 'react-native';
+import { StyleSheet, Text, View, TextInput, TextInputProps, StyleProp, TextStyle, ViewProps, ViewStyle, TextProps, KeyboardAvoidingView, StatusBar, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { AppLoading } from 'expo';
 import * as Font from 'expo-font';
 
@@ -269,20 +269,25 @@ export default class App extends React.Component {
       );
     }
     return (
-      <KeyboardAvoidingView
-        style={{
-          flex: 1,
-          flexDirection: 'row',
-          marginTop: StatusBar.currentHeight + SCREEN_PADDING_TOP,
-          marginBottom: SCREEN_PADDING_BOTTOM
-        }}
-        behavior='padding'
+      <TouchableWithoutFeedback
+        onPress={() => Keyboard.dismiss()}
+        accessible={false}
       >
-        <ScoreLabelColumn />
-        {Array.from(Array(NUMPLAYERS).keys()).map((i) =>
-          <PlayerScoreCard key={i} playerNumber={i + 1} />
-        )}
-      </KeyboardAvoidingView>
+        <KeyboardAvoidingView
+          style={{
+            flex: 1,
+            flexDirection: 'row',
+            marginTop: StatusBar.currentHeight + SCREEN_PADDING_TOP,
+            marginBottom: SCREEN_PADDING_BOTTOM
+          }}
+          behavior='padding'
+        >
+          <ScoreLabelColumn />
+          {Array.from(Array(NUMPLAYERS).keys()).map((i) =>
+            <PlayerScoreCard key={i} playerNumber={i + 1} />
+          )}
+        </KeyboardAvoidingView>
+      </TouchableWithoutFeedback>
     );
   }
 }
