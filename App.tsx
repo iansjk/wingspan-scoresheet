@@ -17,11 +17,23 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start'
   },
   defaultText: {
-    fontSize: 20,
+    fontSize: 24,
     fontFamily: 'cardenio-modern'
   },
   defaultTextInput: {
     textAlign: 'center'
+  },
+  verticalLabel: {
+    position: 'absolute',
+    textAlign: 'center',
+    textTransform: 'uppercase',
+    transform: [{ rotate: '270deg' }]
+  },
+  subsectionLabelContainer: {
+    flex: 1,
+    backgroundColor: 'lightgray',
+    borderRightWidth: 1,
+    borderBottomWidth: 1
   }
 });
 
@@ -60,23 +72,26 @@ export class ScoreLabelColumn extends React.Component {
       width: 0,
       height: 0,
       left: 0,
-      top: 0
+      top: 0,
+      lineHeight: 0
     },
     onePointEachStyle: {
       width: 0,
       height: 0,
       left: 0,
-      top: 0
+      top: 0,
+      lineHeight: 0
     }
   }
 
   handleLayout(event, propName) {
     const viewLayout = event.nativeEvent.layout;
     const labelStyle = {
-      width: viewLayout.height,
-      height: viewLayout.width,
       left: -viewLayout.height / 2 + viewLayout.width / 2,
-      top: viewLayout.height / 2 - viewLayout.width / 2
+      top: viewLayout.height / 2 - viewLayout.width / 2,
+      width: viewLayout.height,
+      height: viewLayout.width - 2,
+      lineHeight: viewLayout.width - 2
     }
     this.setState({
       [propName + 'Style']: labelStyle
@@ -85,20 +100,19 @@ export class ScoreLabelColumn extends React.Component {
 
   render() {
     return (
-      <View style={{ flex: 3 }}>
+      <View style={{ flex: 9 }}>
         <LabelCell />
-        <View style={{ flex: 3, flexDirection: 'row' }}>
+        <View style={{
+          flex: 3,
+          flexDirection: 'row',
+          borderTopWidth: 2
+        }}>
           <View
-            style={{ flex: 1, backgroundColor: 'lightgray' }}
+            style={styles.subsectionLabelContainer}
             onLayout={(e) => this.handleLayout(e, 'amountOnCards')}
           >
             <WSText
-              style={[this.state.amountOnCardsStyle, {
-                position: 'absolute',
-                textAlign: 'center',
-                textTransform: 'uppercase',
-                transform: [{ rotate: '270deg' }]
-              }] as StyleProp<TextStyle>}
+              style={[this.state.amountOnCardsStyle, styles.verticalLabel] as StyleProp<TextStyle>}
             >Amount on cards</WSText>
           </View>
           <View style={{ flex: 5 }}>
@@ -113,18 +127,16 @@ export class ScoreLabelColumn extends React.Component {
             </LabelCell>
           </View>
         </View>
-        <View style={{ flex: 3, flexDirection: 'row' }}>
+        <View style={{
+          flex: 3,
+          flexDirection: 'row'
+        }}>
           <View
-            style={{ flex: 1, backgroundColor: 'lightgray' }}
+            style={styles.subsectionLabelContainer}
             onLayout={(e) => this.handleLayout(e, 'onePointEach')}
           >
             <WSText
-              style={[this.state.onePointEachStyle, {
-                position: 'absolute',
-                textAlign: 'center',
-                textTransform: 'uppercase',
-                transform: [{ rotate: '270deg' }]
-              }] as StyleProp<TextStyle>}
+              style={[this.state.onePointEachStyle, styles.verticalLabel] as StyleProp<TextStyle>}
             >1 Point Each</WSText>
           </View>
           <View style={{ flex: 5 }}>
@@ -141,6 +153,7 @@ export class ScoreLabelColumn extends React.Component {
         </View>
         <LabelCell style={{
           borderBottomWidth: 0,
+          borderTopWidth: 2,
           alignItems: 'center'
         }}>
           <WSText style={{
@@ -165,7 +178,7 @@ class ScoreCell extends React.Component<TextInputProps> {
 }
 
 interface PlayerScoreCardProps {
-  number: number
+  playerNumber: number
 }
 
 interface PlayerScoreCardState {
@@ -207,18 +220,22 @@ class PlayerScoreCard extends React.Component<PlayerScoreCardProps, PlayerScoreC
 
   render() {
     return (
-      <View style={{ flex: 2 }}>
+      <View style={{ flex: 4 }}>
         <TableCell>
-          <WSTextInput defaultValue={"Player " + this.props.number} />
+          <WSTextInput defaultValue={"Player " + this.props.playerNumber} />
         </TableCell>
-        <View style={{ flex: 3 }}>
+        <View style={{
+          flex: 3,
+          borderTopWidth: 2
+        }}>
           {this.state.subscores.slice(0, 3).map((_, i) => this.renderScoreCell(i))}
         </View>
         <View style={{ flex: 3 }}>
           {this.state.subscores.slice(3).map((_, i) => this.renderScoreCell(i))}
         </View>
         <TableCell style={{
-          borderBottomWidth: 0
+          borderBottomWidth: 0,
+          borderTopWidth: 2
         }}>
           <WSTextInput
             editable={false}
@@ -231,7 +248,8 @@ class PlayerScoreCard extends React.Component<PlayerScoreCardProps, PlayerScoreC
 }
 
 const NUMPLAYERS = 2;
-const SCREEN_PADDING = 10;
+const SCREEN_PADDING_BOTTOM = 10;
+const SCREEN_PADDING_TOP = 10;
 
 export default class App extends React.Component {
   state = {
@@ -253,14 +271,14 @@ export default class App extends React.Component {
         style={{
           flex: 1,
           flexDirection: 'row',
-          marginTop: StatusBar.currentHeight + SCREEN_PADDING,
-          margin: SCREEN_PADDING
+          marginTop: StatusBar.currentHeight + SCREEN_PADDING_TOP,
+          marginBottom: SCREEN_PADDING_BOTTOM
         }}
         behavior='padding'
       >
         <ScoreLabelColumn />
         {Array.from(Array(NUMPLAYERS).keys()).map((i) =>
-          <PlayerScoreCard key={i} number={i + 1} />
+          <PlayerScoreCard key={i} playerNumber={i + 1} />
         )}
       </KeyboardAvoidingView>
     );
