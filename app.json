@@ -2,6 +2,7 @@
   "expo": {
     "name": "Wingspan Scoresheet",
     "slug": "wingspan-scoresheet",
+    "description": "A scoresheet app for the board game Wingspan.",
     "privacy": "public",
     "sdkVersion": "36.0.0",
     "platforms": [
