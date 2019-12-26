@@ -192,7 +192,7 @@ class PlayerScoreCard extends React.Component<PlayerScoreCardProps, PlayerScoreC
   constructor(props) {
     super(props);
     this.state = {
-      subscores: Array(6).fill(0),
+      subscores: Array(6).fill(null),
       total: 0
     }
   }
@@ -214,7 +214,8 @@ class PlayerScoreCard extends React.Component<PlayerScoreCardProps, PlayerScoreC
       <TableCell key={i}>
         <ScoreCell
           onChangeText={(text) => this.handleChangeText(text, i)}
-          value={this.state.subscores[i].toString()}
+          value={(this.state.subscores[i] !== null) ? this.state.subscores[i].toString() : ''}
+          placeholder={'0'}
         />
       </TableCell>
     );
@@ -224,7 +225,10 @@ class PlayerScoreCard extends React.Component<PlayerScoreCardProps, PlayerScoreC
     return (
       <View style={{ flex: 4 }}>
         <TableCell>
-          <WSTextInput defaultValue={"Player " + this.props.playerNumber} />
+          <WSTextInput
+            defaultValue={"Player " + this.props.playerNumber}
+            selectTextOnFocus={true}
+          />
         </TableCell>
         <View style={{
           flex: 3,
@@ -268,6 +272,7 @@ export default class App extends React.Component {
         />
       );
     }
+
     return (
       <TouchableWithoutFeedback
         onPress={() => Keyboard.dismiss()}
