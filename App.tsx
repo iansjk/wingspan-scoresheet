@@ -1,12 +1,13 @@
 import React from 'react';
-import { StyleSheet, Text, View, TextInput, TextInputProps, StyleProp, TextStyle, ViewProps, ViewStyle, TextProps, KeyboardAvoidingView, StatusBar, TouchableWithoutFeedback, Keyboard } from 'react-native';
-import { AppLoading } from 'expo';
+import { StyleSheet, Text, View, TextInput, TextInputProps, StyleProp, TextStyle, ViewProps, ViewStyle, TextProps, KeyboardAvoidingView, StatusBar, TouchableWithoutFeedback, Keyboard, Button } from 'react-native';
+import { AppLoading, ScreenOrientation } from 'expo';
 import * as Font from 'expo-font';
+import { FontAwesome } from '@expo/vector-icons';
 
 const styles = StyleSheet.create({
   tableCell: {
     flex: 1,
-    padding: 10,
+    padding: 5,
     borderLeftWidth: 1,
     borderBottomWidth: 1,
     alignItems: 'center',
@@ -14,6 +15,7 @@ const styles = StyleSheet.create({
   },
   labelCell: {
     borderLeftWidth: 0,
+    paddingLeft: 10,
     alignItems: 'flex-start'
   },
   defaultText: {
@@ -23,7 +25,10 @@ const styles = StyleSheet.create({
   defaultTextInput: {
     flex: 1,
     alignSelf: 'stretch',
-    textAlign: 'center'
+    textAlign: 'center',
+    backgroundColor: '#fafafa',
+    borderBottomWidth: 1,
+    margin: 10
   },
   verticalLabel: {
     position: 'absolute',
@@ -59,30 +64,79 @@ class WSText extends React.Component<TextProps> {
 
 class WSTextInput extends React.Component<TextInputProps> {
   render() {
+    const {style, ...otherProps} = this.props;
     return (
       <TextInput
-        style={[styles.defaultText, styles.defaultTextInput, this.props.style] as StyleProp<TextStyle>}
-        {...this.props}
+        style={[styles.defaultText, styles.defaultTextInput, style] as StyleProp<TextStyle>}  
+        {...otherProps}  
       />
     );
   }
 }
 
-export class ScoreLabelColumn extends React.Component {
-  state = {
-    amountOnCardsStyle: {
-      width: 0,
-      height: 0,
-      left: 0,
-      top: 0,
-      lineHeight: 0
-    },
-    onePointEachStyle: {
-      width: 0,
-      height: 0,
-      left: 0,
-      top: 0,
-      lineHeight: 0
+interface IconButtonProps {
+  name: string,
+  onPress(any): void,
+  style?: object
+}
+
+class IconButton extends React.Component<IconButtonProps> {
+  render() {
+    return (
+      <FontAwesome.Button
+        name={this.props.name}
+        iconStyle={{
+          ...this.props.style,
+          marginRight: 0
+        }}
+        backgroundColor='transparent'
+        size={26}
+        onPress={this.props.onPress}
+      />
+    );
+  }
+}
+
+interface VerticalLabelProps {
+  width: number,
+  height: number,
+  left: number,
+  top: number,
+  lineHeight: number
+}
+
+interface ScoreLabelColumnProps {
+  numPlayers: number,
+  onAddPlayer(): void,
+  onRemovePlayer(): void,
+  onReset(): void
+}
+
+interface ScoreLabelColumnState {
+  amountOnCardsStyle: VerticalLabelProps,
+  onePointEachStyle: VerticalLabelProps,
+  isKeyboardVisible: boolean
+}
+
+export class ScoreLabelColumn extends React.Component<ScoreLabelColumnProps, ScoreLabelColumnState> {
+  constructor(props) {
+    super(props);
+    this.state = {
+      amountOnCardsStyle: {
+        width: 0,
+        height: 0,
+        left: 0,
+        top: 0,
+        lineHeight: 0
+      },
+      onePointEachStyle: {
+        width: 0,
+        height: 0,
+        left: 0,
+        top: 0,
+        lineHeight: 0
+      },
+      isKeyboardVisible: false
     }
   }
 
@@ -95,15 +149,55 @@ export class ScoreLabelColumn extends React.Component {
       height: viewLayout.width - 2,
       lineHeight: viewLayout.width - 2
     }
-    this.setState({
-      [propName + 'Style']: labelStyle
-    });
+    if (propName === 'amountOnCards') {
+      this.setState({
+        amountOnCardsStyle: labelStyle
+      })
+    } else if (propName === 'onePointEach') {
+      this.setState({
+        onePointEachStyle: labelStyle
+      })
+    }
   }
 
   render() {
     return (
       <View style={{ flex: 9 }}>
-        <LabelCell />
+        <LabelCell style={{
+          flexDirection: 'row',
+          alignItems: 'center'
+        }}>
+          <View style={{
+            flex: 1,
+            flexDirection: 'row',
+            justifyContent: 'center',
+            alignItems: 'center'
+          }}>
+            <View style={{
+              paddingRight: 10,
+              borderRightWidth: 1,
+              borderColor: 'lightgray'
+            }}>
+              <IconButton
+                name='repeat'
+                style={{ color: 'black' }}
+                onPress={this.props.onReset}
+              />
+            </View>
+            <View style={{ marginLeft: 10 }}></View>
+            <IconButton
+              name='minus-circle'
+              style={{ color: 'red' }}
+              onPress={this.props.onRemovePlayer}
+            />
+            <WSText style={{ margin: 5 }}>{this.props.numPlayers}P</WSText>
+            <IconButton
+              name='plus-circle'
+              style={{ color: 'green' }}
+              onPress={this.props.onAddPlayer}
+            />
+          </View>
+        </LabelCell>
         <View style={{
           flex: 3,
           flexDirection: 'row',
@@ -244,6 +338,10 @@ class PlayerScoreCard extends React.Component<PlayerScoreCardProps, PlayerScoreC
           borderTopWidth: 2
         }}>
           <WSTextInput
+            style= {{
+              backgroundColor: 'transparent',
+              borderBottomWidth: 0
+            }}
             editable={false}
             value={this.state.total.toString()}
           />
@@ -253,13 +351,54 @@ class PlayerScoreCard extends React.Component<PlayerScoreCardProps, PlayerScoreC
   }
 }
 
-const NUMPLAYERS = 2;
+const MIN_PLAYERS = 1;
+const MAX_PLAYERS = 5;
+const STARTING_PLAYERS = 2;
+const ORIENTATION_BREAK_POINT = 4; // force to landscape at this player count
 const SCREEN_PADDING_BOTTOM = 10;
 const SCREEN_PADDING_TOP = 10;
 
-export default class App extends React.Component {
-  state = {
-    isReady: false
+interface AppState {
+  numPlayers: number,
+  isReady: boolean
+}
+
+export default class App extends React.Component<{}, AppState> {
+  constructor(props) {
+    super(props);
+    this.state = {
+      numPlayers: STARTING_PLAYERS,
+      isReady: false
+    }
+  }
+
+  handleReset() {
+    console.log('reset');
+  }
+
+  handleAddPlayer() {
+    const newNum = this.state.numPlayers + 1;
+    if (newNum <= MAX_PLAYERS) {
+      this.setState({
+        numPlayers: newNum
+      });
+    }
+    if (newNum >= ORIENTATION_BREAK_POINT) {
+      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+    }
+    // TODO handle Automa at 1P
+  }
+
+  handleRemovePlayer() {
+    const newNum = this.state.numPlayers - 1;
+    if (newNum >= MIN_PLAYERS) {
+      this.setState({
+        numPlayers: newNum
+      });
+    }
+    if (newNum < ORIENTATION_BREAK_POINT) {
+      ScreenOrientation.unlockAsync();
+    }
   }
 
   render() {
@@ -287,8 +426,13 @@ export default class App extends React.Component {
           }}
           behavior='padding'
         >
-          <ScoreLabelColumn />
-          {Array.from(Array(NUMPLAYERS).keys()).map((i) =>
+          <ScoreLabelColumn
+            numPlayers={this.state.numPlayers}
+            onReset={() => this.handleReset()}
+            onAddPlayer={() => this.handleAddPlayer()}
+            onRemovePlayer={() => this.handleRemovePlayer()}
+          />
+          {Array.from(Array(this.state.numPlayers).keys()).map((i) =>
             <PlayerScoreCard key={i} playerNumber={i + 1} />
           )}
         </KeyboardAvoidingView>
@@ -297,9 +441,11 @@ export default class App extends React.Component {
   }
 }
 
-function loadAssets() {
-  return Font.loadAsync({
-    'cardenio-modern': require('./assets/fonts/CardenioModern-Regular.otf'),
-    'cardenio-modern-bold': require('./assets/fonts/CardenioModern-Bold.otf')
-  });
+async function loadAssets() {
+  await Promise.all([
+    Font.loadAsync({
+      'cardenio-modern': require('./assets/fonts/CardenioModern-Regular.otf'),
+      'cardenio-modern-bold': require('./assets/fonts/CardenioModern-Bold.otf')
+    })
+  ]);
 }
