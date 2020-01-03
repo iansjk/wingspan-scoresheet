@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View, TextInput, TextInputProps, StyleProp, TextStyle, ViewProps, ViewStyle, TextProps, KeyboardAvoidingView, StatusBar, TouchableWithoutFeedback, Keyboard, Button, Dimensions } from 'react-native';
+import { StyleSheet, Text, View, TextInput, TextInputProps, StyleProp, TextStyle, ViewProps, ViewStyle, TextProps, KeyboardAvoidingView, StatusBar, TouchableWithoutFeedback, Keyboard, Button, Dimensions, TouchableWithoutFeedbackProps, TouchableHighlightProps } from 'react-native';
 import { AppLoading, ScreenOrientation } from 'expo';
 import * as Font from 'expo-font';
 import { FontAwesome } from '@expo/vector-icons';
@@ -75,24 +75,24 @@ class WSTextInput extends React.Component<TextInputProps> {
 }
 
 interface IconButtonProps {
-  name: string,
-  onPress(any): void,
-  style?: object
+  name: string
 }
 
-class IconButton extends React.Component<IconButtonProps> {
+class IconButton extends React.Component<IconButtonProps & TextProps & TouchableHighlightProps & TouchableWithoutFeedbackProps> {
   render() {
+    const { style, ...otherProps } = this.props;
     return (
       <FontAwesome.Button
         name={this.props.name}
         iconStyle={{
-          ...this.props.style,
+          ...(style as object),
           marginRight: 0
         }}
         backgroundColor='transparent'
         size={26}
         underlayColor='lightgray'
         onPress={this.props.onPress}
+        {...otherProps}
       />
     );
   }
@@ -162,6 +162,8 @@ export class ScoreLabelColumn extends React.Component<ScoreLabelColumnProps, Sco
   }
 
   render() {
+    const removePlayerDisabled = this.props.numPlayers === MIN_PLAYERS;
+    const addPlayerDisabled = this.props.numPlayers === MAX_PLAYERS;
     return (
       <View style={{ flex: 9 }}>
         <LabelCell style={{
@@ -188,14 +190,16 @@ export class ScoreLabelColumn extends React.Component<ScoreLabelColumnProps, Sco
             <View style={{ marginLeft: 10 }}></View>
             <IconButton
               name='minus-circle'
-              style={{ color: 'red' }}
+              style={{ color: removePlayerDisabled ? 'gray' : 'red' }}
               onPress={this.props.onRemovePlayer}
+              disabled={removePlayerDisabled}
             />
             <WSText style={{ margin: 5 }}>{this.props.numPlayers}P</WSText>
             <IconButton
               name='plus-circle'
-              style={{ color: 'green' }}
+              style={{ color: addPlayerDisabled ? 'gray' : 'green' }}
               onPress={this.props.onAddPlayer}
+              disabled={addPlayerDisabled}
             />
           </View>
         </LabelCell>
