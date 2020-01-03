@@ -1,8 +1,8 @@
-import React from 'react';
-import { StyleSheet, Text, View, TextInput, TextInputProps, StyleProp, TextStyle, ViewProps, ViewStyle, TextProps, KeyboardAvoidingView, StatusBar, TouchableWithoutFeedback, Keyboard, Button, Dimensions, TouchableWithoutFeedbackProps, TouchableHighlightProps } from 'react-native';
+import { FontAwesome } from '@expo/vector-icons';
 import { AppLoading, ScreenOrientation } from 'expo';
 import * as Font from 'expo-font';
-import { FontAwesome } from '@expo/vector-icons';
+import React from 'react';
+import { Keyboard, KeyboardAvoidingView, StatusBar, StyleProp, StyleSheet, Text, TextInput, TextInputProps, TextProps, TextStyle, TouchableHighlightProps, TouchableWithoutFeedback, TouchableWithoutFeedbackProps, View, ViewProps, ViewStyle } from 'react-native';
 
 const styles = StyleSheet.create({
   tableCell: {
