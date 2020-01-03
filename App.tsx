@@ -361,7 +361,6 @@ export default class App extends React.Component<{}, AppState> {
       height: Dimensions.get('window').height,
       orientation: 'portrait'
     }
-    this.handleChangeText = this.handleChangeText.bind(this);
   }
 
   _initializeScores() {
@@ -433,9 +432,10 @@ export default class App extends React.Component<{}, AppState> {
   renderPlayers() {
     return Array.from(Array(this.state.numPlayers).keys()).map((i) =>
       <PlayerScoreCard
+        key={i}
         playerNumber={i}
         scores={this.state.scores[i]}
-        onChangeText={this.handleChangeText}
+        onChangeText={(text, i, playerNumber) => this.handleChangeText(text, i, playerNumber)}
       />
     );
   }
@@ -455,7 +455,7 @@ export default class App extends React.Component<{}, AppState> {
       <TouchableWithoutFeedback
         onPress={() => Keyboard.dismiss()}
         accessible={false}
-        style={{flex: 1}}
+        style={{ flex: 1 }}
       >
         <KeyboardAvoidingView
           style={{
