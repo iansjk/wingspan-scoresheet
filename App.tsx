@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View, TextInput, TextInputProps, StyleProp, TextStyle, ViewProps, ViewStyle, TextProps, KeyboardAvoidingView, StatusBar, TouchableWithoutFeedback, Keyboard, Button } from 'react-native';
+import { StyleSheet, Text, View, TextInput, TextInputProps, StyleProp, TextStyle, ViewProps, ViewStyle, TextProps, KeyboardAvoidingView, StatusBar, TouchableWithoutFeedback, Keyboard, Button, Dimensions } from 'react-native';
 import { AppLoading, ScreenOrientation } from 'expo';
 import * as Font from 'expo-font';
 import { FontAwesome } from '@expo/vector-icons';
@@ -7,7 +7,6 @@ import { FontAwesome } from '@expo/vector-icons';
 const styles = StyleSheet.create({
   tableCell: {
     flex: 1,
-    padding: 5,
     borderLeftWidth: 1,
     borderBottomWidth: 1,
     alignItems: 'center',
@@ -64,11 +63,12 @@ class WSText extends React.Component<TextProps> {
 
 class WSTextInput extends React.Component<TextInputProps> {
   render() {
-    const {style, ...otherProps} = this.props;
+    const { style, ...otherProps } = this.props;
     return (
       <TextInput
-        style={[styles.defaultText, styles.defaultTextInput, style] as StyleProp<TextStyle>}  
-        {...otherProps}  
+        style={[styles.defaultText, styles.defaultTextInput, style] as StyleProp<TextStyle>}
+        selectTextOnFocus={true}
+        {...otherProps}
       />
     );
   }
@@ -91,6 +91,7 @@ class IconButton extends React.Component<IconButtonProps> {
         }}
         backgroundColor='transparent'
         size={26}
+        underlayColor='lightgray'
         onPress={this.props.onPress}
       />
     );
@@ -107,6 +108,7 @@ interface VerticalLabelProps {
 
 interface ScoreLabelColumnProps {
   numPlayers: number,
+  orientation: string,
   onAddPlayer(): void,
   onRemovePlayer(): void,
   onReset(): void
@@ -274,41 +276,22 @@ class ScoreCell extends React.Component<TextInputProps> {
 }
 
 interface PlayerScoreCardProps {
-  playerNumber: number
+  playerNumber: number,
+  scores: Array<number>,
+  onChangeText(text: string, i: number, playerNumber: number): void
 }
 
-interface PlayerScoreCardState {
-  subscores: Array<number>,
-  total: number
-}
-
-class PlayerScoreCard extends React.Component<PlayerScoreCardProps, PlayerScoreCardState> {
+class PlayerScoreCard extends React.Component<PlayerScoreCardProps> {
   constructor(props) {
     super(props);
-    this.state = {
-      subscores: Array(6).fill(null),
-      total: 0
-    }
-  }
-
-  handleChangeText(text: string, i: number) {
-    const value = Number(text);
-    if (!isNaN(value)) {
-      let subscores = this.state.subscores.slice();
-      subscores[i] = value;
-      this.setState({
-        subscores: subscores,
-        total: subscores.reduce((a, b) => a + b)
-      });
-    }
   }
 
   renderScoreCell(i: number) {
     return (
       <TableCell key={i}>
         <ScoreCell
-          onChangeText={(text) => this.handleChangeText(text, i)}
-          value={(this.state.subscores[i] !== null) ? this.state.subscores[i].toString() : ''}
+          onChangeText={(text) => this.props.onChangeText(text, i, this.props.playerNumber)}
+          value={(this.props.scores[i] !== null) ? this.props.scores[i].toString() : ''}
           placeholder={'0'}
         />
       </TableCell>
@@ -316,34 +299,34 @@ class PlayerScoreCard extends React.Component<PlayerScoreCardProps, PlayerScoreC
   }
 
   render() {
+    const total = this.props.scores.reduce((a, b) => a + b);
     return (
       <View style={{ flex: 4 }}>
         <TableCell>
           <WSTextInput
-            defaultValue={"Player " + this.props.playerNumber}
-            selectTextOnFocus={true}
+            defaultValue={"Player " + (this.props.playerNumber + 1)}
           />
         </TableCell>
         <View style={{
           flex: 3,
           borderTopWidth: 2
         }}>
-          {this.state.subscores.slice(0, 3).map((_, i) => this.renderScoreCell(i))}
+          {this.props.scores.slice(0, 3).map((_, i) => this.renderScoreCell(i))}
         </View>
         <View style={{ flex: 3 }}>
-          {this.state.subscores.slice(3).map((_, i) => this.renderScoreCell(i + 3))}
+          {this.props.scores.slice(3).map((_, i) => this.renderScoreCell(i + 3))}
         </View>
         <TableCell style={{
           borderBottomWidth: 0,
           borderTopWidth: 2
         }}>
           <WSTextInput
-            style= {{
+            style={{
               backgroundColor: 'transparent',
               borderBottomWidth: 0
             }}
             editable={false}
-            value={this.state.total.toString()}
+            value={total.toString()}
           />
         </TableCell>
       </View>
@@ -354,13 +337,17 @@ class PlayerScoreCard extends React.Component<PlayerScoreCardProps, PlayerScoreC
 const MIN_PLAYERS = 1;
 const MAX_PLAYERS = 5;
 const STARTING_PLAYERS = 2;
-const ORIENTATION_BREAK_POINT = 4; // force to landscape at this player count
+const ORIENTATION_BREAK_POINT = 3; // force to landscape at this player count
 const SCREEN_PADDING_BOTTOM = 10;
 const SCREEN_PADDING_TOP = 10;
 
 interface AppState {
   numPlayers: number,
-  isReady: boolean
+  isReady: boolean,
+  scores: Array<Array<number>>,
+  width: number,
+  height: number,
+  orientation: string
 }
 
 export default class App extends React.Component<{}, AppState> {
@@ -368,23 +355,55 @@ export default class App extends React.Component<{}, AppState> {
     super(props);
     this.state = {
       numPlayers: STARTING_PLAYERS,
-      isReady: false
+      isReady: false,
+      scores: this._initializeScores(),
+      width: Dimensions.get('window').width,
+      height: Dimensions.get('window').height,
+      orientation: 'portrait'
+    }
+    this.handleChangeText = this.handleChangeText.bind(this);
+  }
+
+  _initializeScores() {
+    return Array.from(Array(STARTING_PLAYERS), () => this._initializePlayerScores());
+  }
+
+  _initializePlayerScores() {
+    return Array(6).fill(0);
+  }
+
+  handleChangeText(text: string, i: number, playerNumber: number) {
+    const value = Number(text);
+    if (!isNaN(value)) {
+      let scores = this.state.scores.slice();
+      scores[playerNumber][i] = value;
+      this.setState({
+        scores: scores
+      });
     }
   }
 
   handleReset() {
-    console.log('reset');
+    this.setState({
+      scores: this._initializeScores()
+    });
   }
 
   handleAddPlayer() {
     const newNum = this.state.numPlayers + 1;
     if (newNum <= MAX_PLAYERS) {
+      const scores = this.state.scores;
+      let orientation = this.state.orientation;
+      scores.push(this._initializePlayerScores());
+      if (newNum >= ORIENTATION_BREAK_POINT) {
+        ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+        orientation = 'landscape';
+      }
       this.setState({
-        numPlayers: newNum
+        numPlayers: newNum,
+        scores: scores,
+        orientation: orientation
       });
-    }
-    if (newNum >= ORIENTATION_BREAK_POINT) {
-      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
     }
     // TODO handle Automa at 1P
   }
@@ -392,13 +411,33 @@ export default class App extends React.Component<{}, AppState> {
   handleRemovePlayer() {
     const newNum = this.state.numPlayers - 1;
     if (newNum >= MIN_PLAYERS) {
+      let orientation = this.state.orientation;
+      if (newNum < ORIENTATION_BREAK_POINT) {
+        ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
+        orientation = 'portrait';
+      }
       this.setState({
-        numPlayers: newNum
+        numPlayers: newNum,
+        scores: this.state.scores.slice(0, newNum)
       });
     }
-    if (newNum < ORIENTATION_BREAK_POINT) {
-      ScreenOrientation.unlockAsync();
-    }
+  }
+
+  handleLayout() {
+    this.setState({
+      width: Dimensions.get('window').width,
+      height: Dimensions.get('window').height
+    });
+  }
+
+  renderPlayers() {
+    return Array.from(Array(this.state.numPlayers).keys()).map((i) =>
+      <PlayerScoreCard
+        playerNumber={i}
+        scores={this.state.scores[i]}
+        onChangeText={this.handleChangeText}
+      />
+    );
   }
 
   render() {
@@ -416,14 +455,18 @@ export default class App extends React.Component<{}, AppState> {
       <TouchableWithoutFeedback
         onPress={() => Keyboard.dismiss()}
         accessible={false}
+        style={{flex: 1}}
       >
         <KeyboardAvoidingView
           style={{
             flex: 1,
             flexDirection: 'row',
+            width: this.state.width,
+            height: this.state.height,
             marginTop: StatusBar.currentHeight + SCREEN_PADDING_TOP,
             marginBottom: SCREEN_PADDING_BOTTOM
           }}
+          onLayout={() => this.handleLayout()}
           behavior='padding'
         >
           <ScoreLabelColumn
@@ -431,10 +474,9 @@ export default class App extends React.Component<{}, AppState> {
             onReset={() => this.handleReset()}
             onAddPlayer={() => this.handleAddPlayer()}
             onRemovePlayer={() => this.handleRemovePlayer()}
+            orientation={this.state.orientation}
           />
-          {Array.from(Array(this.state.numPlayers).keys()).map((i) =>
-            <PlayerScoreCard key={i} playerNumber={i + 1} />
-          )}
+          {this.renderPlayers()}
         </KeyboardAvoidingView>
       </TouchableWithoutFeedback>
     );
