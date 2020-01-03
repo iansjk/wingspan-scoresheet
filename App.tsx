@@ -108,7 +108,6 @@ interface VerticalLabelProps {
 
 interface ScoreLabelColumnProps {
   numPlayers: number,
-  orientation: string,
   onAddPlayer(): void,
   onRemovePlayer(): void,
   onReset(): void
@@ -345,9 +344,6 @@ interface AppState {
   numPlayers: number,
   isReady: boolean,
   scores: Array<Array<number>>,
-  width: number,
-  height: number,
-  orientation: string
 }
 
 export default class App extends React.Component<{}, AppState> {
@@ -357,9 +353,6 @@ export default class App extends React.Component<{}, AppState> {
       numPlayers: STARTING_PLAYERS,
       isReady: false,
       scores: this._initializeScores(),
-      width: Dimensions.get('window').width,
-      height: Dimensions.get('window').height,
-      orientation: 'portrait'
     }
   }
 
@@ -392,16 +385,13 @@ export default class App extends React.Component<{}, AppState> {
     const newNum = this.state.numPlayers + 1;
     if (newNum <= MAX_PLAYERS) {
       const scores = this.state.scores;
-      let orientation = this.state.orientation;
       scores.push(this._initializePlayerScores());
       if (newNum >= ORIENTATION_BREAK_POINT) {
         ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
-        orientation = 'landscape';
       }
       this.setState({
         numPlayers: newNum,
-        scores: scores,
-        orientation: orientation
+        scores: scores
       });
     }
     // TODO handle Automa at 1P
@@ -410,10 +400,8 @@ export default class App extends React.Component<{}, AppState> {
   handleRemovePlayer() {
     const newNum = this.state.numPlayers - 1;
     if (newNum >= MIN_PLAYERS) {
-      let orientation = this.state.orientation;
       if (newNum < ORIENTATION_BREAK_POINT) {
         ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
-        orientation = 'portrait';
       }
       this.setState({
         numPlayers: newNum,
@@ -422,12 +410,6 @@ export default class App extends React.Component<{}, AppState> {
     }
   }
 
-  handleLayout() {
-    this.setState({
-      width: Dimensions.get('window').width,
-      height: Dimensions.get('window').height
-    });
-  }
 
   renderPlayers() {
     return Array.from(Array(this.state.numPlayers).keys()).map((i) =>
@@ -461,12 +443,9 @@ export default class App extends React.Component<{}, AppState> {
           style={{
             flex: 1,
             flexDirection: 'row',
-            width: this.state.width,
-            height: this.state.height,
             marginTop: StatusBar.currentHeight + SCREEN_PADDING_TOP,
             marginBottom: SCREEN_PADDING_BOTTOM
           }}
-          onLayout={() => this.handleLayout()}
           behavior='padding'
         >
           <ScoreLabelColumn
@@ -474,7 +453,6 @@ export default class App extends React.Component<{}, AppState> {
             onReset={() => this.handleReset()}
             onAddPlayer={() => this.handleAddPlayer()}
             onRemovePlayer={() => this.handleRemovePlayer()}
-            orientation={this.state.orientation}
           />
           {this.renderPlayers()}
         </KeyboardAvoidingView>
