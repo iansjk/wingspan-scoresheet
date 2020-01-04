@@ -2,7 +2,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import { AppLoading, ScreenOrientation } from 'expo';
 import * as Font from 'expo-font';
 import { OrientationChangeEvent } from 'expo/build/ScreenOrientation/ScreenOrientation';
-import React from 'react';
+import React, { FunctionComponent } from 'react';
 import { Keyboard, StatusBar, StyleProp, StyleSheet, Text, TextInput, TextInputProps, TextProps, TextStyle, TouchableHighlightProps, TouchableWithoutFeedback, TouchableWithoutFeedbackProps, View, ViewProps, ViewStyle, Dimensions } from 'react-native';
 
 const styles = StyleSheet.create({
@@ -19,11 +19,11 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     alignItems: 'flex-start'
   },
-  defaultText: {
+  text: {
     fontSize: 24,
     fontFamily: 'cardenio-modern'
   },
-  defaultTextInput: {
+  textInput: {
     flex: 1,
     alignSelf: 'stretch',
     textAlign: 'center',
@@ -44,35 +44,24 @@ const styles = StyleSheet.create({
   }
 });
 
-class TableCell extends React.Component<ViewProps> {
-  render() {
-    return <View style={[styles.tableCell, this.props.style] as StyleProp<ViewStyle>}>{this.props.children}</View>
-  }
-}
+const TableCell: React.StatelessComponent<ViewProps> = (props) =>
+  <View style={[styles.tableCell, props.style] as StyleProp<ViewStyle>}>{props.children}</View>
 
-class LabelCell extends React.Component<ViewProps> {
-  render() {
-    return <View style={[styles.tableCell, styles.labelCell, this.props.style] as StyleProp<ViewStyle>}>{this.props.children}</View>
-  }
-}
+const LabelCell: React.StatelessComponent<ViewProps> = (props) =>
+  <View style={[styles.tableCell, styles.labelCell, props.style] as StyleProp<ViewStyle>}>{props.children}</View>
 
-class WSText extends React.Component<TextProps> {
-  render() {
-    return <Text style={[styles.defaultText, this.props.style] as StyleProp<TextStyle>}>{this.props.children}</Text>
-  }
-}
+const WSText: React.StatelessComponent<TextProps> = (props) =>
+  <Text style={[styles.text, props.style] as StyleProp<TextStyle>}>{props.children}</Text>
 
-class WSTextInput extends React.Component<TextInputProps> {
-  render() {
-    const { style, ...otherProps } = this.props;
-    return (
-      <TextInput
-        style={[styles.defaultText, styles.defaultTextInput, style] as StyleProp<TextStyle>}
-        selectTextOnFocus={true}
-        {...otherProps}
-      />
-    );
-  }
+const WSTextInput: React.StatelessComponent<TextInputProps> = (props) => {
+  const { style, ...otherProps } = props;
+  return (
+    <TextInput
+      style={[styles.text, styles.textInput, style] as StyleProp<TextStyle>}
+      selectTextOnFocus={true}
+      {...otherProps}
+    />
+  );
 }
 
 interface IconButtonProps {
@@ -118,7 +107,6 @@ interface ScoreLabelColumnProps {
 interface ScoreLabelColumnState {
   amountOnCardsStyle: VerticalLabelProps,
   onePointEachStyle: VerticalLabelProps,
-  isKeyboardVisible: boolean
 }
 
 export class ScoreLabelColumn extends React.Component<ScoreLabelColumnProps, ScoreLabelColumnState> {
@@ -138,8 +126,7 @@ export class ScoreLabelColumn extends React.Component<ScoreLabelColumnProps, Sco
         left: 0,
         top: 0,
         lineHeight: 0
-      },
-      isKeyboardVisible: false
+      }
     }
   }
 
@@ -275,17 +262,6 @@ export class ScoreLabelColumn extends React.Component<ScoreLabelColumnProps, Sco
   }
 }
 
-class ScoreCell extends React.Component<TextInputProps> {
-  render() {
-    return (
-      <WSTextInput
-        keyboardType="numeric"
-        {...this.props}
-      />
-    );
-  }
-}
-
 interface PlayerScoreCardProps {
   playerNumber: number,
   scores: Array<number>,
@@ -304,10 +280,11 @@ class PlayerScoreCard extends React.Component<PlayerScoreCardProps> {
         key={i}
         style={this.props.orientation === 'LANDSCAPE' ? { padding: 5 } : {}}
       >
-        <ScoreCell
+        <WSTextInput
           onChangeText={(text) => this.props.onChangeText(text, i, this.props.playerNumber)}
           value={this.props.scores[i].toString()}
           placeholder={'0'}
+          keyboardType='numeric'
         />
       </TableCell>
     );
@@ -321,19 +298,27 @@ class PlayerScoreCard extends React.Component<PlayerScoreCardProps> {
           <TableCell>
             <WSText>Automa</WSText>
           </TableCell>
-          {this.renderScoreCell(0)}
-          <TableCell></TableCell>
-          {this.renderScoreCell(1)}
-          {this.renderScoreCell(2)}
-          <TableCell></TableCell>
-          {this.renderScoreCell(3)}
+          <View style={{
+            flex: 3,
+            borderTopWidth: 2
+          }}>
+            {this.renderScoreCell(0)}
+            <TableCell style={{backgroundColor: 'gray'}}></TableCell>
+            {this.renderScoreCell(1)}
+          </View>
+          <View style={{
+            flex: 3
+          }}>
+            {this.renderScoreCell(2)}
+            <TableCell style={{backgroundColor: 'gray'}}></TableCell>
+            {this.renderScoreCell(3)}
+          </View>
           <TableCell style={{
             borderBottomWidth: 0,
             borderTopWidth: 2
           }}>
             <WSText>{total}</WSText>
           </TableCell>
-
         </View>
       );
     } else {
@@ -357,14 +342,7 @@ class PlayerScoreCard extends React.Component<PlayerScoreCardProps> {
             borderBottomWidth: 0,
             borderTopWidth: 2
           }}>
-            <WSTextInput
-              style={{
-                backgroundColor: 'transparent',
-                borderBottomWidth: 0
-              }}
-              editable={false}
-              value={total.toString()}
-            />
+            <WSText>{total}</WSText>
           </TableCell>
         </View>
       );
@@ -384,8 +362,6 @@ interface AppState {
   isReady: boolean,
   scores: Array<Array<number>>,
   automaScores: Array<number>,
-  width: number,
-  height: number,
   paddingBottom: number,
   orientation: string
 }
@@ -398,8 +374,6 @@ export default class App extends React.Component<{}, AppState> {
       isReady: false,
       scores: this._initializeScores(STARTING_PLAYERS),
       automaScores: this._initializeAutomaScores(),
-      width: Dimensions.get('window').width,
-      height: Dimensions.get('window').height,
       paddingBottom: 0,
       orientation: 'PORTRAIT'
     }
@@ -425,7 +399,7 @@ export default class App extends React.Component<{}, AppState> {
     }
   }
 
-  handleKeyboardDidHide(e) {
+  handleKeyboardDidHide() {
     if (this.state.orientation === 'PORTRAIT') {
       this.setState({
         paddingBottom: 0
@@ -489,9 +463,7 @@ export default class App extends React.Component<{}, AppState> {
 
   handleOrientationChange(e: OrientationChangeEvent) {
     this.setState({
-      orientation: e.orientationLock,
-      width: Dimensions.get('window').width,
-      height: Dimensions.get('window').height
+      orientation: e.orientationLock
     });
   }
 
@@ -504,7 +476,7 @@ export default class App extends React.Component<{}, AppState> {
       ScreenOrientation.addOrientationChangeListener((e) => this.handleOrientationChange(e)),
       ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT),
       Keyboard.addListener('keyboardDidShow', (e) => this.handleKeyboardDidShow(e)),
-      Keyboard.addListener('keyboardDidHide', (e) => this.handleKeyboardDidHide(e))
+      Keyboard.addListener('keyboardDidHide', () => this.handleKeyboardDidHide())
     ]);
   }
 
@@ -552,8 +524,8 @@ export default class App extends React.Component<{}, AppState> {
             style={{
               flex: 1,
               flexDirection: 'row',
-              width: this.state.width,
-              height: this.state.height,
+              width: '100%',
+              height: '100%',
               paddingTop: StatusBar.currentHeight + SCREEN_PADDING_TOP,
               paddingBottom: SCREEN_PADDING_BOTTOM + this.state.paddingBottom,
             }}
