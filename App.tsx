@@ -315,37 +315,60 @@ class PlayerScoreCard extends React.Component<PlayerScoreCardProps> {
 
   render() {
     const total = this.props.scores.reduce((a, b) => a + b);
-    return (
-      <View style={{ flex: 4 }}>
-        <TableCell>
-          <WSTextInput
-            defaultValue={"Player " + (this.props.playerNumber + 1)}
-          />
-        </TableCell>
-        <View style={{
-          flex: 3,
-          borderTopWidth: 2
-        }}>
-          {this.props.scores.slice(0, 3).map((_, i) => this.renderScoreCell(i))}
+    if (this.props.playerNumber === -1) { // automa
+      return (
+        <View style={{ flex: 4 }}>
+          <TableCell>
+            <WSText>Automa</WSText>
+          </TableCell>
+          {this.renderScoreCell(0)}
+          <TableCell></TableCell>
+          {this.renderScoreCell(1)}
+          {this.renderScoreCell(2)}
+          <TableCell></TableCell>
+          {this.renderScoreCell(3)}
+          <TableCell style={{
+            borderBottomWidth: 0,
+            borderTopWidth: 2
+          }}>
+            <WSText>{total}</WSText>
+          </TableCell>
+
         </View>
-        <View style={{ flex: 3 }}>
-          {this.props.scores.slice(3).map((_, i) => this.renderScoreCell(i + 3))}
+      );
+    } else {
+      return (
+        <View style={{ flex: 4 }}>
+          <TableCell>
+            <WSTextInput
+              defaultValue={"Player " + (this.props.playerNumber + 1)}
+            />
+          </TableCell>
+          <View style={{
+            flex: 3,
+            borderTopWidth: 2
+          }}>
+            {this.props.scores.slice(0, 3).map((_, i) => this.renderScoreCell(i))}
+          </View>
+          <View style={{ flex: 3 }}>
+            {this.props.scores.slice(3).map((_, i) => this.renderScoreCell(i + 3))}
+          </View>
+          <TableCell style={{
+            borderBottomWidth: 0,
+            borderTopWidth: 2
+          }}>
+            <WSTextInput
+              style={{
+                backgroundColor: 'transparent',
+                borderBottomWidth: 0
+              }}
+              editable={false}
+              value={total.toString()}
+            />
+          </TableCell>
         </View>
-        <TableCell style={{
-          borderBottomWidth: 0,
-          borderTopWidth: 2
-        }}>
-          <WSTextInput
-            style={{
-              backgroundColor: 'transparent',
-              borderBottomWidth: 0
-            }}
-            editable={false}
-            value={total.toString()}
-          />
-        </TableCell>
-      </View>
-    );
+      );
+    }
   }
 }
 
@@ -360,6 +383,7 @@ interface AppState {
   numPlayers: number,
   isReady: boolean,
   scores: Array<Array<number>>,
+  automaScores: Array<number>,
   width: number,
   height: number,
   paddingBottom: number,
@@ -373,6 +397,7 @@ export default class App extends React.Component<{}, AppState> {
       numPlayers: STARTING_PLAYERS,
       isReady: false,
       scores: this._initializeScores(STARTING_PLAYERS),
+      automaScores: this._initializeAutomaScores(),
       width: Dimensions.get('window').width,
       height: Dimensions.get('window').height,
       paddingBottom: 0,
@@ -382,6 +407,10 @@ export default class App extends React.Component<{}, AppState> {
 
   _initializeScores(numPlayers) {
     return Array.from(Array(numPlayers), () => this._initializePlayerScores());
+  }
+
+  _initializeAutomaScores() {
+    return Array(4).fill(0);
   }
 
   _initializePlayerScores() {
@@ -407,17 +436,26 @@ export default class App extends React.Component<{}, AppState> {
   handleChangeText(text: string, i: number, playerNumber: number) {
     const value = Number(text);
     if (!isNaN(value)) {
-      let scores = this.state.scores.slice();
-      scores[playerNumber][i] = value;
-      this.setState({
-        scores: scores
-      });
+      if (playerNumber === -1) { // automa
+        let automaScores = this.state.automaScores.slice();
+        automaScores[i] = value;
+        this.setState({
+          automaScores: automaScores
+        });
+      } else {
+        let scores = this.state.scores.slice();
+        scores[playerNumber][i] = value;
+        this.setState({
+          scores: scores
+        });
+      }
     }
   }
 
   handleReset() {
     this.setState({
-      scores: this._initializeScores(this.state.numPlayers)
+      scores: this._initializeScores(this.state.numPlayers),
+      automaScores: this._initializeAutomaScores()
     });
   }
 
@@ -434,7 +472,6 @@ export default class App extends React.Component<{}, AppState> {
         scores: scores
       });
     }
-    // TODO handle Automa at 1P
   }
 
   handleRemovePlayer() {
@@ -481,18 +518,15 @@ export default class App extends React.Component<{}, AppState> {
         orientation={this.state.orientation}
       />
     );
-    /* 
-    TODO Automa
-
     if (this.state.numPlayers === 1) {
-      players.push(<PlayerScoreCard 
+      players.push(<PlayerScoreCard
         key={1}
         playerNumber={-1}
-        scores={this.state.automaScores} 
-        onChangeText={(text, i) => this.handleChangeText(text, i, -1)
+        scores={this.state.automaScores}
+        onChangeText={(text, i) => this.handleChangeText(text, i, -1)}
         orientation={this.state.orientation}
       />);
-    }*/
+    }
     return players;
   }
 
@@ -508,31 +542,33 @@ export default class App extends React.Component<{}, AppState> {
     }
 
     return (
-      <TouchableWithoutFeedback
-        onPress={() => Keyboard.dismiss()}
-        accessible={false}
-        style={{ flex: 1 }}
-      >
-        <View
-          style={{
-            flex: 1,
-            flexDirection: 'row',
-            width: this.state.width,
-            height: this.state.height,
-            paddingTop: StatusBar.currentHeight + SCREEN_PADDING_TOP,
-            paddingBottom: SCREEN_PADDING_BOTTOM + this.state.paddingBottom,
-          }}
+      <React.StrictMode>
+        <TouchableWithoutFeedback
+          onPress={() => Keyboard.dismiss()}
+          accessible={false}
+          style={{ flex: 1 }}
         >
-          <ScoreLabelColumn
-            numPlayers={this.state.numPlayers}
-            onReset={() => this.handleReset()}
-            onAddPlayer={() => this.handleAddPlayer()}
-            onRemovePlayer={() => this.handleRemovePlayer()}
-            orientation={this.state.orientation}
-          />
-          {this.renderPlayers()}
-        </View>
-      </TouchableWithoutFeedback>
+          <View
+            style={{
+              flex: 1,
+              flexDirection: 'row',
+              width: this.state.width,
+              height: this.state.height,
+              paddingTop: StatusBar.currentHeight + SCREEN_PADDING_TOP,
+              paddingBottom: SCREEN_PADDING_BOTTOM + this.state.paddingBottom,
+            }}
+          >
+            <ScoreLabelColumn
+              numPlayers={this.state.numPlayers}
+              onReset={() => this.handleReset()}
+              onAddPlayer={() => this.handleAddPlayer()}
+              onRemovePlayer={() => this.handleRemovePlayer()}
+              orientation={this.state.orientation}
+            />
+            {this.renderPlayers()}
+          </View>
+        </TouchableWithoutFeedback>
+      </React.StrictMode>
     );
   }
 }
