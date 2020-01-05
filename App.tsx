@@ -2,8 +2,8 @@ import { FontAwesome } from '@expo/vector-icons';
 import { AppLoading, ScreenOrientation } from 'expo';
 import * as Font from 'expo-font';
 import { OrientationChangeEvent } from 'expo/build/ScreenOrientation/ScreenOrientation';
-import React, { FunctionComponent } from 'react';
-import { Keyboard, StatusBar, StyleProp, StyleSheet, Text, TextInput, TextInputProps, TextProps, TextStyle, TouchableHighlightProps, TouchableWithoutFeedback, TouchableWithoutFeedbackProps, View, ViewProps, ViewStyle, Dimensions } from 'react-native';
+import React from 'react';
+import { Keyboard, StatusBar, StyleProp, StyleSheet, Text, TextInput, TextInputProps, TextProps, TextStyle, TouchableHighlightProps, TouchableWithoutFeedback, TouchableWithoutFeedbackProps, View, ViewProps, ViewStyle } from 'react-native';
 
 const styles = StyleSheet.create({
   tableCell: {
