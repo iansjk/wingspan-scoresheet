@@ -4,6 +4,8 @@ import * as Font from 'expo-font';
 import { OrientationChangeEvent } from 'expo/build/ScreenOrientation/ScreenOrientation';
 import React from 'react';
 import { Keyboard, StatusBar, StyleProp, StyleSheet, Text, TextInput, TextInputProps, TextProps, TextStyle, TouchableHighlightProps, TouchableWithoutFeedback, TouchableWithoutFeedbackProps, View, ViewProps, ViewStyle } from 'react-native';
+import { createAppContainer } from 'react-navigation';
+import { createStackNavigator } from 'react-navigation-stack';
 
 const styles = StyleSheet.create({
   tableCell: {
@@ -109,7 +111,7 @@ interface ScoreLabelColumnState {
   onePointEachStyle: VerticalLabelProps,
 }
 
-export class ScoreLabelColumn extends React.Component<ScoreLabelColumnProps, ScoreLabelColumnState> {
+class ScoreLabelColumn extends React.Component<ScoreLabelColumnProps, ScoreLabelColumnState> {
   constructor(props) {
     super(props);
     this.state = {
@@ -303,14 +305,14 @@ class PlayerScoreCard extends React.Component<PlayerScoreCardProps> {
             borderTopWidth: 2
           }}>
             {this.renderScoreCell(0)}
-            <TableCell style={{backgroundColor: 'gray'}}></TableCell>
+            <TableCell style={{ backgroundColor: 'gray' }}></TableCell>
             {this.renderScoreCell(1)}
           </View>
           <View style={{
             flex: 3
           }}>
             {this.renderScoreCell(2)}
-            <TableCell style={{backgroundColor: 'gray'}}></TableCell>
+            <TableCell style={{ backgroundColor: 'gray' }}></TableCell>
             {this.renderScoreCell(3)}
           </View>
           <TableCell style={{
@@ -366,7 +368,7 @@ interface AppState {
   orientation: string
 }
 
-export default class App extends React.Component<{}, AppState> {
+class HomeScreen extends React.Component<{}, AppState> {
   constructor(props) {
     super(props);
     this.state = {
@@ -544,3 +546,9 @@ export default class App extends React.Component<{}, AppState> {
     );
   }
 }
+
+const AppNavigator = createStackNavigator({
+  Home: HomeScreen
+});
+
+export default createAppContainer(AppNavigator);
