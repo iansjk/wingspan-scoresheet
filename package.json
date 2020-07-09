@@ -23,5 +23,5 @@
     "babel-preset-expo": "^8.2.3",
     "typescript": "~3.9.5"
   },
-  "private": true
+  "license": "GPL-3.0-or-later"
 }
