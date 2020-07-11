@@ -1,9 +1,9 @@
 import { FontAwesome } from '@expo/vector-icons';
-import { AppLoading, ScreenOrientation } from 'expo';
+import { AppLoading } from 'expo';
+import * as ScreenOrientation from 'expo-screen-orientation';
 import * as Font from 'expo-font';
-import { OrientationChangeEvent } from 'expo/build/ScreenOrientation/ScreenOrientation';
-import React, { FunctionComponent } from 'react';
-import { Keyboard, StatusBar, StyleProp, StyleSheet, Text, TextInput, TextInputProps, TextProps, TextStyle, TouchableHighlightProps, TouchableWithoutFeedback, TouchableWithoutFeedbackProps, View, ViewProps, ViewStyle, Dimensions } from 'react-native';
+import React from 'react';
+import { Keyboard, StatusBar, StyleProp, StyleSheet, Text, TextInput, TextInputProps, TextProps, TextStyle, TouchableHighlightProps, TouchableWithoutFeedback, TouchableWithoutFeedbackProps, View, ViewProps, ViewStyle, KeyboardAvoidingView, Platform } from 'react-native';
 
 const styles = StyleSheet.create({
   tableCell: {
@@ -65,7 +65,9 @@ const WSTextInput: React.StatelessComponent<TextInputProps> = (props) => {
 }
 
 interface IconButtonProps {
-  name: string
+  name: string,
+  iconStyle?: object,
+  backgroundColor?: string
 }
 
 class IconButton extends React.Component<IconButtonProps & TextProps & TouchableHighlightProps & TouchableWithoutFeedbackProps> {
@@ -265,6 +267,7 @@ export class ScoreLabelColumn extends React.Component<ScoreLabelColumnProps, Sco
 interface PlayerScoreCardProps {
   playerNumber: number,
   scores: Array<number>,
+  maxScore: number,
   onChangeText(text: string, i: number, playerNumber: number): void,
   orientation: string
 }
@@ -315,7 +318,8 @@ class PlayerScoreCard extends React.Component<PlayerScoreCardProps> {
           </View>
           <TableCell style={{
             borderBottomWidth: 0,
-            borderTopWidth: 2
+            borderTopWidth: 2,
+            backgroundColor: total === this.props.maxScore ? "yellow" : "white"
           }}>
             <WSText>{total}</WSText>
           </TableCell>
@@ -340,7 +344,8 @@ class PlayerScoreCard extends React.Component<PlayerScoreCardProps> {
           </View>
           <TableCell style={{
             borderBottomWidth: 0,
-            borderTopWidth: 2
+            borderTopWidth: 2,
+            backgroundColor: total === this.props.maxScore ? "yellow" : "white"
           }}>
             <WSText>{total}</WSText>
           </TableCell>
@@ -351,9 +356,10 @@ class PlayerScoreCard extends React.Component<PlayerScoreCardProps> {
 }
 
 const MIN_PLAYERS = 1;
-const MAX_PLAYERS = 5;
+// const MAX_PLAYERS = 5;
+const MAX_PLAYERS = 2;
 const STARTING_PLAYERS = 2;
-const ORIENTATION_BREAK_POINT = 3; // force to landscape at this player count
+const ORIENTATION_BREAK_POINT = 5; // force to landscape at this player count
 const SCREEN_PADDING_BOTTOM = 10;
 const SCREEN_PADDING_TOP = 10;
 
@@ -362,6 +368,7 @@ interface AppState {
   isReady: boolean,
   scores: Array<Array<number>>,
   automaScores: Array<number>,
+  maxScore: number,
   paddingBottom: number,
   orientation: string
 }
@@ -374,6 +381,7 @@ export default class App extends React.Component<{}, AppState> {
       isReady: false,
       scores: this._initializeScores(STARTING_PLAYERS),
       automaScores: this._initializeAutomaScores(),
+      maxScore: -1,
       paddingBottom: 0,
       orientation: 'PORTRAIT'
     }
@@ -391,36 +399,26 @@ export default class App extends React.Component<{}, AppState> {
     return Array(6).fill(0);
   }
 
-  handleKeyboardDidShow(e) {
-    if (this.state.orientation === 'PORTRAIT') {
-      this.setState({
-        paddingBottom: e.endCoordinates.height
-      });
-    }
-  }
-
-  handleKeyboardDidHide() {
-    if (this.state.orientation === 'PORTRAIT') {
-      this.setState({
-        paddingBottom: 0
-      });
-    }
-  }
-
   handleChangeText(text: string, i: number, playerNumber: number) {
     const value = Number(text);
     if (!isNaN(value)) {
       if (playerNumber === -1) { // automa
         let automaScores = this.state.automaScores.slice();
         automaScores[i] = value;
+        const automaTotal: number = automaScores.reduce((a, b) => a + b);
+        const playerTotal: number = this.state.scores[0].reduce((a, b) => a + b);
+        const maxScore: number = Math.max(automaTotal, playerTotal);
         this.setState({
-          automaScores: automaScores
+          automaScores: automaScores,
+          maxScore: maxScore
         });
       } else {
         let scores = this.state.scores.slice();
         scores[playerNumber][i] = value;
+        let maxScore: number = Math.max(...scores.map((playerScore) => playerScore.reduce((a, b) => a + b)));
         this.setState({
-          scores: scores
+          scores: scores,
+          maxScore: maxScore
         });
       }
     }
@@ -461,7 +459,7 @@ export default class App extends React.Component<{}, AppState> {
     }
   }
 
-  handleOrientationChange(e: OrientationChangeEvent) {
+  handleOrientationChange(e: any) {
     this.setState({
       orientation: e.orientationLock
     });
@@ -474,9 +472,7 @@ export default class App extends React.Component<{}, AppState> {
         'cardenio-modern-bold': require('./assets/fonts/CardenioModern-Bold.otf')
       }),
       ScreenOrientation.addOrientationChangeListener((e) => this.handleOrientationChange(e)),
-      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT),
-      Keyboard.addListener('keyboardDidShow', (e) => this.handleKeyboardDidShow(e)),
-      Keyboard.addListener('keyboardDidHide', () => this.handleKeyboardDidHide())
+      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT)
     ]);
   }
 
@@ -486,6 +482,7 @@ export default class App extends React.Component<{}, AppState> {
         key={i}
         playerNumber={i}
         scores={this.state.scores[i]}
+        maxScore={this.state.maxScore}
         onChangeText={(text, i, playerNumber) => this.handleChangeText(text, i, playerNumber)}
         orientation={this.state.orientation}
       />
@@ -495,6 +492,7 @@ export default class App extends React.Component<{}, AppState> {
         key={1}
         playerNumber={-1}
         scores={this.state.automaScores}
+        maxScore={this.state.maxScore}
         onChangeText={(text, i) => this.handleChangeText(text, i, -1)}
         orientation={this.state.orientation}
       />);
@@ -520,7 +518,8 @@ export default class App extends React.Component<{}, AppState> {
           accessible={false}
           style={{ flex: 1 }}
         >
-          <View
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
             style={{
               flex: 1,
               flexDirection: 'row',
@@ -538,7 +537,7 @@ export default class App extends React.Component<{}, AppState> {
               orientation={this.state.orientation}
             />
             {this.renderPlayers()}
-          </View>
+          </KeyboardAvoidingView>
         </TouchableWithoutFeedback>
       </React.StrictMode>
     );
