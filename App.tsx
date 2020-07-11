@@ -319,7 +319,7 @@ class PlayerScoreCard extends React.Component<PlayerScoreCardProps> {
           <TableCell style={{
             borderBottomWidth: 0,
             borderTopWidth: 2,
-            backgroundColor: total === this.props.maxScore ? "yellow" : "white"
+            backgroundColor: this.props.maxScore > 0 && total === this.props.maxScore ? "yellow" : "white"
           }}>
             <WSText>{total}</WSText>
           </TableCell>
@@ -345,7 +345,7 @@ class PlayerScoreCard extends React.Component<PlayerScoreCardProps> {
           <TableCell style={{
             borderBottomWidth: 0,
             borderTopWidth: 2,
-            backgroundColor: total === this.props.maxScore ? "yellow" : "white"
+            backgroundColor: this.props.maxScore > 0 && total === this.props.maxScore ? "yellow" : "white"          
           }}>
             <WSText>{total}</WSText>
           </TableCell>
@@ -368,7 +368,6 @@ interface AppState {
   isReady: boolean,
   scores: Array<Array<number>>,
   automaScores: Array<number>,
-  maxScore: number,
   paddingBottom: number,
   orientation: string
 }
@@ -381,7 +380,6 @@ export default class App extends React.Component<{}, AppState> {
       isReady: false,
       scores: this._initializeScores(STARTING_PLAYERS),
       automaScores: this._initializeAutomaScores(),
-      maxScore: -1,
       paddingBottom: 0,
       orientation: 'PORTRAIT'
     }
@@ -405,20 +403,14 @@ export default class App extends React.Component<{}, AppState> {
       if (playerNumber === -1) { // automa
         let automaScores = this.state.automaScores.slice();
         automaScores[i] = value;
-        const automaTotal: number = automaScores.reduce((a, b) => a + b);
-        const playerTotal: number = this.state.scores[0].reduce((a, b) => a + b);
-        const maxScore: number = Math.max(automaTotal, playerTotal);
         this.setState({
-          automaScores: automaScores,
-          maxScore: maxScore
+          automaScores: automaScores
         });
       } else {
         let scores = this.state.scores.slice();
         scores[playerNumber][i] = value;
-        let maxScore: number = Math.max(...scores.map((playerScore) => playerScore.reduce((a, b) => a + b)));
         this.setState({
-          scores: scores,
-          maxScore: maxScore
+          scores: scores
         });
       }
     }
@@ -477,12 +469,14 @@ export default class App extends React.Component<{}, AppState> {
   }
 
   renderPlayers() {
+    const scores: number[][] = (this.state.numPlayers === 1) ? new Array(this.state.scores[0], this.state.automaScores) : this.state.scores;
+    const maxScore = Math.max(...scores.map((playerScores) => playerScores.reduce((a, b) => a + b)));
     let players = Array.from(Array(this.state.numPlayers).keys()).map((i) =>
       <PlayerScoreCard
         key={i}
         playerNumber={i}
         scores={this.state.scores[i]}
-        maxScore={this.state.maxScore}
+        maxScore={maxScore}
         onChangeText={(text, i, playerNumber) => this.handleChangeText(text, i, playerNumber)}
         orientation={this.state.orientation}
       />
@@ -492,7 +486,7 @@ export default class App extends React.Component<{}, AppState> {
         key={1}
         playerNumber={-1}
         scores={this.state.automaScores}
-        maxScore={this.state.maxScore}
+        maxScore={maxScore}
         onChangeText={(text, i) => this.handleChangeText(text, i, -1)}
         orientation={this.state.orientation}
       />);
