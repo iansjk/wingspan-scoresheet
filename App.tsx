@@ -295,6 +295,13 @@ class PlayerScoreCard extends React.Component<PlayerScoreCardProps> {
 
   render() {
     const total = this.props.scores.reduce((a, b) => a + b);
+    const totalCell = <TableCell style={{
+        borderBottomWidth: 0,
+        borderTopWidth: 2,
+        backgroundColor: this.props.maxScore > 0 && total === this.props.maxScore ? "yellow" : "white"
+      }}>
+        <WSText>{total}</WSText>
+    </TableCell>
     if (this.props.playerNumber === -1) { // automa
       return (
         <View style={{ flex: 4 }}>
@@ -316,13 +323,7 @@ class PlayerScoreCard extends React.Component<PlayerScoreCardProps> {
             <TableCell style={{backgroundColor: 'gray'}}></TableCell>
             {this.renderScoreCell(3)}
           </View>
-          <TableCell style={{
-            borderBottomWidth: 0,
-            borderTopWidth: 2,
-            backgroundColor: this.props.maxScore > 0 && total === this.props.maxScore ? "yellow" : "white"
-          }}>
-            <WSText>{total}</WSText>
-          </TableCell>
+          {totalCell}
         </View>
       );
     } else {
@@ -342,13 +343,7 @@ class PlayerScoreCard extends React.Component<PlayerScoreCardProps> {
           <View style={{ flex: 3 }}>
             {this.props.scores.slice(3).map((_, i) => this.renderScoreCell(i + 3))}
           </View>
-          <TableCell style={{
-            borderBottomWidth: 0,
-            borderTopWidth: 2,
-            backgroundColor: this.props.maxScore > 0 && total === this.props.maxScore ? "yellow" : "white"          
-          }}>
-            <WSText>{total}</WSText>
-          </TableCell>
+          {totalCell}
         </View>
       );
     }
