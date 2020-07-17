@@ -3,7 +3,7 @@ import { AppLoading } from 'expo';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import * as Font from 'expo-font';
 import React from 'react';
-import { Keyboard, StatusBar, StyleProp, StyleSheet, Text, TextInput, TextInputProps, TextProps, TextStyle, TouchableHighlightProps, TouchableWithoutFeedback, TouchableWithoutFeedbackProps, View, ViewProps, ViewStyle, KeyboardAvoidingView, Platform } from 'react-native';
+import { Keyboard, StatusBar, StyleProp, StyleSheet, Text, TextInput, TextInputProps, TextProps, TextStyle, TouchableHighlightProps, TouchableWithoutFeedback, TouchableWithoutFeedbackProps, View, ViewProps, ViewStyle, KeyboardAvoidingView, Platform, Modal } from 'react-native';
 
 const styles = StyleSheet.create({
   tableCell: {
@@ -41,6 +41,21 @@ const styles = StyleSheet.create({
     backgroundColor: 'lightgray',
     borderRightWidth: 1,
     borderBottomWidth: 1
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 20,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5
   }
 });
 
@@ -296,11 +311,11 @@ class PlayerScoreCard extends React.Component<PlayerScoreCardProps> {
   render() {
     const total = this.props.scores.reduce((a, b) => a + b);
     const totalCell = <TableCell style={{
-        borderBottomWidth: 0,
-        borderTopWidth: 2,
-        backgroundColor: this.props.maxScore > 0 && total === this.props.maxScore ? "yellow" : "white"
-      }}>
-        <WSText>{total}</WSText>
+      borderBottomWidth: 0,
+      borderTopWidth: 2,
+      backgroundColor: this.props.maxScore > 0 && total === this.props.maxScore ? "yellow" : "white"
+    }}>
+      <WSText>{total}</WSText>
     </TableCell>
     if (this.props.playerNumber === -1) { // automa
       return (
@@ -313,14 +328,14 @@ class PlayerScoreCard extends React.Component<PlayerScoreCardProps> {
             borderTopWidth: 2
           }}>
             {this.renderScoreCell(0)}
-            <TableCell style={{backgroundColor: 'gray'}}></TableCell>
+            <TableCell style={{ backgroundColor: 'gray' }}></TableCell>
             {this.renderScoreCell(1)}
           </View>
           <View style={{
             flex: 3
           }}>
             {this.renderScoreCell(2)}
-            <TableCell style={{backgroundColor: 'gray'}}></TableCell>
+            <TableCell style={{ backgroundColor: 'gray' }}></TableCell>
             {this.renderScoreCell(3)}
           </View>
           {totalCell}
@@ -350,6 +365,24 @@ class PlayerScoreCard extends React.Component<PlayerScoreCardProps> {
   }
 }
 
+interface EndOfRoundGoalsModalProps {
+  visible: boolean
+}
+
+const EndOfRoundGoalsModal: React.StatelessComponent<EndOfRoundGoalsModalProps> = (props) => {
+  return (
+    <Modal
+      animationType="slide"
+      transparent={true}
+      visible={props.visible}
+    >
+      <View style={styles.modalView}>
+
+      </View>
+    </Modal>
+  );
+}
+
 const MIN_PLAYERS = 1;
 // const MAX_PLAYERS = 5;
 const MAX_PLAYERS = 2;
@@ -364,7 +397,8 @@ interface AppState {
   scores: Array<Array<number>>,
   automaScores: Array<number>,
   paddingBottom: number,
-  orientation: string
+  orientation: string,
+  endOfRoundGoalsModalVisible: boolean
 }
 
 export default class App extends React.Component<{}, AppState> {
@@ -376,7 +410,8 @@ export default class App extends React.Component<{}, AppState> {
       scores: this._initializeScores(STARTING_PLAYERS),
       automaScores: this._initializeAutomaScores(),
       paddingBottom: 0,
-      orientation: 'PORTRAIT'
+      orientation: 'PORTRAIT',
+      endOfRoundGoalsModalVisible: false
     }
   }
 
@@ -502,6 +537,9 @@ export default class App extends React.Component<{}, AppState> {
 
     return (
       <React.StrictMode>
+        <EndOfRoundGoalsModal
+          visible={this.state.endOfRoundGoalsModalVisible}
+        />
         <TouchableWithoutFeedback
           onPress={() => Keyboard.dismiss()}
           accessible={false}
