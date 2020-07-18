@@ -1,17 +1,17 @@
 import { StyleSheet } from "react-native";
 
 const globalStyles = StyleSheet.create({
-    text: {
-        fontSize: 24,
-        fontFamily: 'cardenio-modern'
-    },
     tableCell: {
-        flex: 1,
-        borderLeftWidth: 1,
+        alignItems: "center",
         borderBottomWidth: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
+        borderLeftWidth: 1,
+        flex: 1,
+        justifyContent: "center",
         padding: 10
+    },
+    text: {
+        fontFamily: "cardenio-modern",
+        fontSize: 24
     },
 });
 export default globalStyles;

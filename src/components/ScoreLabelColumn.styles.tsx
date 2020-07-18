@@ -1,16 +1,16 @@
 import { StyleSheet } from "react-native";
 
 export default StyleSheet.create({
-    verticalLabel: {
-        position: 'absolute',
-        textAlign: 'center',
-        textTransform: 'uppercase',
-        transform: [{ rotate: '270deg' }]
-    },
     subsectionLabelContainer: {
-        flex: 1,
-        backgroundColor: 'lightgray',
+        backgroundColor: "lightgray",
+        borderBottomWidth: 1,
         borderRightWidth: 1,
-        borderBottomWidth: 1
+        flex: 1
+    },
+    verticalLabel: {
+        position: "absolute",
+        textAlign: "center",
+        textTransform: "uppercase",
+        transform: [{ rotate: "270deg" }]
     }
 });
