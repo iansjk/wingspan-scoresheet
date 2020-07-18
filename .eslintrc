@@ -1,0 +1,38 @@
+{
+    "parser": "babel-eslint",
+    "parserOptions": {
+        "ecmaFeatures": {
+            "jsx": true
+        }
+    },
+    "settings": {
+        "react": {
+            "version": "detect"
+        }
+    },
+    "env": {
+        "react-native/react-native": true
+    },
+    "plugins": [
+        "react",
+        "react-native"
+    ],
+    "extends": [
+        "eslint:recommended",
+        "plugin:react/recommended",
+        "plugin:react-native/all"
+    ],
+    "rules": {
+        "no-undef": 2,
+        "indent": ["error", 4],
+        "linebreak-style": ["error", "unix"],
+        "quotes": ["error", "double"],
+        "semi": ["error", "always"],
+        "react/no-did-mount-set-state": 2,
+        "react/no-direct-mutation-state": 2,
+        "react/jsx-uses-vars": 2,
+        "react/prop-types": 2,
+        "react/jsx-no-bind": 2,
+        "react/jsx-no-duplicate-props": 2
+    }
+}
