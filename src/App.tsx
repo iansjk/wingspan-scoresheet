@@ -25,7 +25,7 @@ class App extends React.Component<{}, AppState> {
             numPlayers: Constants.STARTING_PLAYERS,
             isReady: false,
             scores: this._initializeScores(Constants.STARTING_PLAYERS),
-            automaScores: this._initializeAutomaScores(),
+            automaScores: this._initializePlayerScores(),
             paddingBottom: 0,
             orientation: 'PORTRAIT',
             endOfRoundGoalsModalVisible: false
@@ -34,10 +34,6 @@ class App extends React.Component<{}, AppState> {
 
     _initializeScores(numPlayers) {
         return Array.from(Array(numPlayers), () => this._initializePlayerScores());
-    }
-
-    _initializeAutomaScores() {
-        return Array(4).fill(0);
     }
 
     _initializePlayerScores() {
@@ -66,7 +62,7 @@ class App extends React.Component<{}, AppState> {
     handleReset() {
         this.setState({
             scores: this._initializeScores(this.state.numPlayers),
-            automaScores: this._initializeAutomaScores()
+            automaScores: this._initializePlayerScores()
         });
     }
 
