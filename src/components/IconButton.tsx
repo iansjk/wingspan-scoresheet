@@ -1,24 +1,23 @@
 
 import React from "react";
-import { TextProps, TouchableHighlightProps, TouchableWithoutFeedbackProps } from "react-native";
-import { FontAwesome } from '@expo/vector-icons';
+import { TextProps, TouchableHighlightProps, TouchableWithoutFeedbackProps, ViewStyle } from "react-native";
+import { FontAwesome } from "@expo/vector-icons";
 
 interface IconButtonProps {
     name: string,
-    iconStyle?: object,
+    iconStyle?: ViewStyle,
     backgroundColor?: string
 }
 
 export default class IconButton extends React.Component<IconButtonProps & TextProps & TouchableHighlightProps & TouchableWithoutFeedbackProps> {
-    render() {
+    render(): JSX.Element {
         const { style, ...otherProps } = this.props;
         return (
             <FontAwesome.Button
-                name={this.props.name}
-                iconStyle={{
-                    ...(style as object),
-                    marginRight: 0
-                }}
+                iconStyle={[
+                    style,
+                    {marginRight: 0}
+                ]}
                 backgroundColor='transparent'
                 size={26}
                 underlayColor='lightgray'

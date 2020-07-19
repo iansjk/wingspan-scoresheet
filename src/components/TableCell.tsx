@@ -6,5 +6,5 @@ const TableCell: React.StatelessComponent<ViewProps> = (props) => {
     return (
         <View style={[globalStyles.tableCell, props.style] as StyleProp<ViewStyle>}>{props.children}</View>
     );
-}
+};
 export default TableCell;

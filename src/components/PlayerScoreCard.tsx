@@ -16,11 +16,11 @@ interface PlayerScoreCardProps {
 }
 
 class PlayerScoreCard extends React.Component<PlayerScoreCardProps> {
-    constructor(props) {
+    constructor(props: PlayerScoreCardProps) {
         super(props);
     }
 
-    renderScoreCell(i: number) {
+    renderScoreCell(i: number): JSX.Element {
         let cellContents = <WSTextInput
             onChangeText={(text) => this.props.onChangeText(text, i, this.props.playerNumber)}
             value={this.props.scores[i].toString()}
@@ -48,7 +48,7 @@ class PlayerScoreCard extends React.Component<PlayerScoreCardProps> {
         );
     }
 
-    render() {
+    render(): JSX.Element {
         const total = this.props.scores.reduce((a, b) => a + b);
         const totalCell = <TableCell style={{
             borderBottomWidth: 0,

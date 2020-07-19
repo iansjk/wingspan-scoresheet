@@ -7,5 +7,5 @@ const LabelCell: React.StatelessComponent<ViewProps> = (props) => {
     return (
         <View style={[globalStyles.tableCell, styles.labelCell, props.style] as StyleProp<ViewStyle>}>{props.children}</View>
     );
-}
+};
 export default LabelCell;

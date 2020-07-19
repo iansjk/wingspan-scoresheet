@@ -12,5 +12,5 @@ const WSTextInput: React.StatelessComponent<TextInputProps> = (props) => {
             {...otherProps}
         />
     );
-}
+};
 export default WSTextInput;
